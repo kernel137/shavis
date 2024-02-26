@@ -1,6 +1,8 @@
 from PIL import Image
 sha256 = str(input("sha256sum: "))
 
+
+# [===================================================]
 if len(sha256) != 64: 
 	print("Error: Input must be 64 characters long.")
 	exit()
@@ -13,10 +15,11 @@ if not all(valid_characters):
 		if not valid_characters[i]: print(f"index: {i}\ncharacter: {sha256[i]}")
 	exit()
 
-sha256_dv = [int(i, 16) for i in sha256] # dv = Decimal Values
-sha256_dvm = []		 # dvm = Decimal Values Matrix
-for i in range(0, 8):
-	sha256_dvm.append(sha256_dv[i*8:(i+1)*8])
+sha256_dv = [int(i, 16) for i in sha256] # dv  = Decimal Values
+sha256_dvm = []		 					 # dvm = Decimal Values Matrix
+for i in range(0, 8): sha256_dvm.append(sha256_dv[i*8:(i+1)*8])
+
+# [===================================================]
 
 
 for i in range(8):
