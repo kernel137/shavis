@@ -6,20 +6,41 @@ if len(sha256) != 64:
 	exit()
 
 hex_allowed = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "a", "b", "c", "d", "e", "f"]
-valid_string = [i in hex_allowed for i in sha256]
-if not all(valid_string): 
+valid_characters = [i in hex_allowed for i in sha256]
+if not all(valid_characters): 
 	print("Error: Invalid SHA256 hashsum character in string.")
-	for i in range(len(valid_string)):
-		if not valid_string[i]: print(f"index: {i}\ncharacter: {sha256[i]}")
+	for i in range(len(valid_characters)):
+		if not valid_characters[i]: print(f"index: {i}\ncharacter: {sha256[i]}")
 	exit()
 
-num_value = [int(i, 16) for i in sha256]
+sha256_dv = [int(i, 16) for i in sha256] # dv = Decimal Values
+sha256_dvm = []		 # dvm = Decimal Values Matrix
+for i in range(0, 8):
+	sha256_dvm.append(sha256_dv[i*8:(i+1)*8])
 
-print(num_value)
 
-# img = Image.new("")
+for i in range(8):
+	for i2 in range(8):
+		print(((sha256_dvm[i][i2]+1)*16)-1, end=' ')
+	print()
+
+# [Implement size here]
 
 
+# [===================]
+
+
+
+image = Image.new("L", (8, 8))
+
+pixels = image.load()
+
+for v in range(8):
+	for h in range(8):
+		pixels[v,h] = ((sha256_dvm[h][v]+1)*16)-1
+		
+
+image.resize((512,512), resample=Image.NEAREST).show()
 
 
 
