@@ -1,12 +1,27 @@
 from PIL import Image
+import sys
+#---------
+key = 0
+custom_key_flag = False
+#----------------------
+encrypt_flag = True
+decrypt_flag = False
+#-------------------
+output_to_file_flag = False
+#--------------------------
+input_string = ""
+input_filename = ""
+#------------------
+output_string = ""
+output_filename = "output.txt"
+#-----------------------------
 
 # [===================[Parameters]===================]
-theme = "red"
+theme = "gold"
 size_select = 7
 color = True
 # [==================================================]
-
-sha256 = str(input("sha256sum: "))
+# sha256 = str(input("sha256sum: "))
 # [==================================================]
 # Check length
 if len(sha256) != 64: 
