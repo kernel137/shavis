@@ -1,5 +1,11 @@
 from PIL import Image
 
+# [===================[Parameters]===================]
+theme = []
+size_select = 7
+color = True
+# [==================================================]
+
 sha256 = str(input("sha256sum: "))
 # [==================================================]
 # Check length
@@ -22,9 +28,7 @@ if not all(valid_characters):
 sha256_dv = [int(i, 16) for i in sha256] # dv  = Decimal Values
 sha256_dvm = []		 					 # dvm = Decimal Values Matrix
 for i in range(0, 8): sha256_dvm.append(sha256_dv[i*8:(i+1)*8])
-
 # [==================[Theme Loader]==================]
-theme = []
 with open("./themes/dark.hex") as file:
 	theme = file.readlines()
 for i in range(16): theme[i] = theme[i].strip()
@@ -38,25 +42,28 @@ for i in range(16): theme[i] = tuple(int(theme[i][i2:i2+2], 16) for i2 in [0, 2,
 # 		print(((sha256_dvm[i][i2]+1)*16)-1, end=' ')
 # 	print()
 
-# [Implement size here]
 
-size_select = 7
+# [ Implement size here ]
+
+# size_select = 7
 # 1 2  3  4  5   6   7   8    9    10
 size = 8 * (2**(size_select-1))
 # 8 16 32 64 128 256 512 1024 2048 4096 
 
-# [===================]
-
-
+# [=====================]
 
 image = Image.new("L", (8, 8))
-
-pixels = image.load()
-
-for v in range(8):
-	for h in range(8):
-		pixels[v,h] = ((sha256_dvm[h][v]+1)*16)-1
-		
+if color: 
+	image = Image.new("RGB", (8, 8))
+	pixels = image.load()
+	for v in range(8):
+		for h in range(8):
+			pixels[v,h] = theme[sha256_dvm[h][v]]
+else:
+	pixels = image.load()
+	for v in range(8):
+		for h in range(8):
+			pixels[v,h] = ((sha256_dvm[h][v]+1)*16)-1
 
 image.resize((size,size), resample=Image.NEAREST).show()
 
