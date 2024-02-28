@@ -4,4 +4,4 @@ Made using Pillow.
 
 Currently in development...
 
-Old C++ implementation made using libbmp by marc-q: https://github.com/marc-q/libbmp/
+
