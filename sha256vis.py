@@ -112,7 +112,7 @@ Examples:
 if("--config" in sys.argv):
 	config_nextarg = nextargument(sys.argv, "--config")
 	
-	if config_nextarg == []: # filter for missing option (--config option)
+	if config_nextarg == []: # filter for missing option (--config option) -> exit
 		print(f"Missing option: --config OPTION")
 		print("Valid options: theme, size")
 		exit()
@@ -121,13 +121,13 @@ if("--config" in sys.argv):
 	option = sys.argv[sys.argv.index("--config")+1] 
 	# taking option
 
-	if option != "theme" and option != "size": # filter for wrong option (--config option)
+	if option != "theme" and option != "size": # filter for wrong option (--config option) -> exit
 		print(f"Invalid option: {option}")
 		print("Valid options: theme, size")
 		exit()
 	# option = theme or size
 
-	if nextargument(sys.argv, option) == []: # filter for missing argument (--config option argument)
+	if nextargument(sys.argv, option) == []: # filter for missing argument (--config option argument) -> exit
 		print(f"Missing setting argument: --config {option} arg")
 		if option == "theme": 
 			print("Available themes: ", end="")
@@ -137,14 +137,15 @@ if("--config" in sys.argv):
 			for num in allowed_sizes: print(num, end=" ")
 		print()
 		exit()
+	# argument - exists
 
 	if option == "size": # filter and update size config (--config size N)
 		size_select = sys.argv[sys.argv.index("size")+1]
-		if not size_select.isdigit(): # check if size is an integer
+		if not size_select.isdigit(): # check if size is an integer (--config size N) -> exit
 			print(f"Size invalid: {size_select}")
 			print("Size needs to be an integer.")
 			exit()
-		if int(size_select) not in allowed_sizes: # check if size is valid
+		if int(size_select) not in allowed_sizes: # check if size is valid (--config size N) -> exit
 			print(f"Size invalid: {size_select}")
 			print("Available sizes: ", end="")
 			for num in allowed_sizes[:-1]: print(num, end=", ")
@@ -166,20 +167,33 @@ if("--config" in sys.argv):
 		updateconf(config)
 
 if("-t" in sys.argv or "--theme" in sys.argv):
-	if len(sys.argv) == 2: # filter for missing setting
-		print(f"Missing setting .")
-		print("Valid:")
-		print("sha256vis -t theme_name")
-		print("sha256vis --theme theme_name")
-		print("Available themes: ", end="")
-		for name in allowed_themes[:-1]: print(name, end=", ")
-		print(allowed_themes[len(allowed_themes)-1])
-		exit()
+	if "-t" in sys.argv: # filter for missing option (-t option) -> exit
+		if nextargument(sys.argv, "-t") == []: # filter for missing setting
+			print(f"Missing setting: -t theme_name")
+			print("Available themes: ", end="")
+			for name in allowed_themes[:-1]: print(name, end=", ")
+			print(allowed_themes[len(allowed_themes)-1])
+			exit()
+		# setting - exists
+	if "--theme" in sys.argv: # filter for missing option (--theme option) -> exit
+		if nextargument(sys.argv, "--theme") == []: # filter for missing setting
+			print(f"Missing setting: --theme theme_name")
+			print("Available themes: ", end="")
+			for name in allowed_themes[:-1]: print(name, end=", ")
+			print(allowed_themes[len(allowed_themes)-1])
+			exit()
+		# setting - exists
+	# setting - exists
+
 	theme = sys.argv[sys.argv.index("-t")+1] if "-t" in sys.argv else sys.argv[sys.argv.index("--theme")+1]
-	if theme not in allowed_themes:
-		print(f"Theme name invalid: {theme}")
+	# taking setting | setting -> theme
+
+	if theme not in allowed_themes: # filter for wrong option (--theme option) -> exit
+		print(f"Theme name invalid: -t/--theme theme_name")
 		print("Available themes: blue, red, gold, natur, dim, dark, cyan, soft-fall")
 		exit()
+
+	# setting theme changed for this call
 
 
 elif("-f" in sys.argv or "--file" in sys.argv):
