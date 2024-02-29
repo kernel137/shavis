@@ -1,5 +1,6 @@
 from PIL import Image
 import sys
+import os
 import hashlib
 import configparser
 
@@ -11,6 +12,12 @@ image = Image.new("RGB", (8, 8))
 # sha256 = "c02fa35ab353e05d657513b89ec14ef838cf60dc" # <==
 # sha256 = "94be53125e66d7713f5545a92857666ff456f1bd7ca65edb57d0c0a43dfffe37"
 sha256 = "7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069".replace(" ", "")
+
+
+# [=================[Check for pipe]=================]
+if not os.isatty(0):
+	hashedpipe = hashlib.sha256(sys.stdin.buffer.read()).hexdigest()
+	sha256 = str(hashedpipe)
 # [====================[Functions]===================]
 def nextargument(argv, opt):
 	return argv[argv.index(str(opt))+1:argv.index(str(opt))+2]
@@ -41,18 +48,15 @@ theme = str(config["options"]["theme"])
 size_select = int(config["options"]["size"])
 color = True
 git = False
-#--------------------------------------
-# 1 2  3  4  5   6   7   8    9    10
-size = 8 * (2**(size_select-1))
-# 8 16 32 64 128 256 512 1024 2048 4096 
-#--------------------------------------
+#----------
 # auto theme option idea
 # take every pair of hex in hash
 # (works for both SHA-1 and SHA-256)
-# and generate color 
+# and generate color
 #-------------------
 allowed_themes = ["blue", "red", "gold", "natur", "dim", "dark", "cyan", "soft-fall"]
 allowed_sizes = [*range(1, 11)]
+#------------------------------
 
 
 
@@ -61,8 +65,7 @@ allowed_sizes = [*range(1, 11)]
 if len(sys.argv) == 2:
 	if(sys.argv[1] == "-h" or sys.argv[1] == "--help"):
 		helpPage = """Usage: sha256vis --hash 
-Encrypt or decrypt text utilizing collatz iteration.
-Allowed input is text through command-line arguments or files.
+Visualize SHA256 hash sum of a file or 
 
 With no flags, first and only argument is used as file input and the 
 visualization is shown in default image viewer.
@@ -304,7 +307,6 @@ xsize, ysize = size, 5 * (2**(size_select-1)) if git else size
 
 image.resize((xsize, ysize), resample=Image.NEAREST).show()
 # [==================================================]
-
 
 
 
