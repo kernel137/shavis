@@ -5,13 +5,20 @@ import configparser
 
 config = configparser.ConfigParser()
 config.read("config.ini")
-config = config["options"]
 
-
+image = Image.new("RGB", (8, 8))
 # [==================================================]
-sha256 = "c02fa35ab353e05d657513b89ec14ef838cf60dc" # <==
+# sha256 = "c02fa35ab353e05d657513b89ec14ef838cf60dc" # <==
 # sha256 = "94be53125e66d7713f5545a92857666ff456f1bd7ca65edb57d0c0a43dfffe37"
-# sha256 = "0123 4567   89ab cdef   0123 4567   7878 7878 0123 4567   89ab cdef 0123 4567   89ab cdef".replace(" ", "")
+sha256 = "7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069".replace(" ", "")
+# [====================[Functions]===================]
+def nextargument(argv, opt):
+	return argv[argv.index(str(opt))+1:argv.index(str(opt))+2]
+
+def updateconf(config):
+	with open("config.ini", "w") as conf:
+		config.write(conf)
+
 # [=================[Hash functions]=================]
 def hashfile(filename):
 	sha256hash = hashlib.sha256()
@@ -26,14 +33,14 @@ def hashtext(text):
 	return hashlib.sha256(bytes(str(text), "UTF-8")).hexdigest()
 # [===================[Parameters]===================]
 output_to_file_flag = False
-filename = ""
-#-----------------
 output_filename = "output.txt"
 #-----------------------------
-theme = config["theme"]
-size_select = 7
+filename = ""
+#------------
+theme = str(config["options"]["theme"])
+size_select = int(config["options"]["size"])
 color = True
-git = True
+git = False
 #--------------------------------------
 # 1 2  3  4  5   6   7   8    9    10
 size = 8 * (2**(size_select-1))
@@ -43,6 +50,12 @@ size = 8 * (2**(size_select-1))
 # take every pair of hex in hash
 # (works for both SHA-1 and SHA-256)
 # and generate color 
+#-------------------
+allowed_themes = ["blue", "red", "gold", "natur", "dim", "dark", "cyan", "soft-fall"]
+allowed_sizes = [*range(1, 11)]
+
+
+
 # [======================[Help]======================]
 # len(sys.argv) == 1 or 
 if len(sys.argv) == 2:
@@ -54,13 +67,16 @@ Allowed input is text through command-line arguments or files.
 With no flags, first and only argument is used as file input and the 
 visualization is shown in default image viewer.
 
+  --config
+        Change configuration for resolution and theme with persistence
+		[--config theme NAME] [--config size N]
   -f, --file         Hash file and visualize hash
   [-f filename.ext] [--file filename.ext]
   -s, --hash         Input hash directly as argument
   [-s HASH] [--hash HASH] (HASH has to be SHA256)
   -r, --resolution
         Pick resolution size, options:
-       [N]   SHA256      SHA1 (Git)
+       [N]  SHA256      SHA1 (Git)
         1 - 8x8       - 8x5
         2 - 16x16     - 16x10
         3 - 32x32     - 32x20
@@ -74,6 +90,7 @@ visualization is shown in default image viewer.
     [-r N] [--resolution N]
   -t, --theme       Change theme, currently available themes:
         blue, red, gold, natur, dim, dark, cyan, soft-fall.
+  [-t red] [--theme gold]
   -o, --output      Output to file and (optionally) choose file name
   [-o] [--output] or [-o "output.png"] [--output "output.png"] 
   -m, --mono       Black and white output.
@@ -91,15 +108,78 @@ Examples:
 		print(helpPage)
 		exit()
 # [===============[Options Processing]===============]
-if(len(sys.argv) == 2):
-	input_string = sys.argv[1]
+
+if("--config" in sys.argv):
+	config_nextarg = nextargument(sys.argv, "--config")
+	
+	if config_nextarg == []: # filter for missing option (--config option)
+		print(f"Missing option: --config OPTION")
+		print("Valid options: theme, size")
+		exit()
+	# option - exists
+
+	option = sys.argv[sys.argv.index("--config")+1] 
+	# taking option
+
+	if option != "theme" and option != "size": # filter for wrong option (--config option)
+		print(f"Invalid option: {option}")
+		print("Valid options: theme, size")
+		exit()
+	# option = theme or size
+
+	if nextargument(sys.argv, option) == []: # filter for missing argument (--config option argument)
+		print(f"Missing setting argument: --config {option} arg")
+		if option == "theme": 
+			print("Available themes: ", end="")
+			for name in allowed_themes: print(name, end=" ")
+		if option == "size": 
+			print("Available sizes: ", end="")
+			for num in allowed_sizes: print(num, end=" ")
+		print()
+		exit()
+
+	if option == "size": # filter and update size config (--config size N)
+		size_select = sys.argv[sys.argv.index("size")+1]
+		if not size_select.isdigit(): # check if size is an integer
+			print(f"Size invalid: {size_select}")
+			print("Size needs to be an integer.")
+			exit()
+		if int(size_select) not in allowed_sizes: # check if size is valid
+			print(f"Size invalid: {size_select}")
+			print("Available sizes: ", end="")
+			for num in allowed_sizes[:-1]: print(num, end=", ")
+			print(allowed_sizes[len(allowed_sizes)-1])
+			exit()
+		size_select = int(size_select)
+		config.set("options", "size", str(size_select))
+		updateconf(config)
+
+	if option == "theme": # filter and update theme config (--config theme name)
+		theme = sys.argv[sys.argv.index("theme")+1]
+		if theme not in allowed_themes: # check if theme name is valid
+			print(f"Theme name invalid: {theme}")
+			print("Available themes: ", end="")
+			for name in allowed_themes[:-1]: print(name, end=", ")
+			print(allowed_themes[len(allowed_themes)-1])
+			exit()
+		config.set("options", "theme", str(theme))
+		updateconf(config)
 
 if("-t" in sys.argv or "--theme" in sys.argv):
+	if len(sys.argv) == 2: # filter for missing setting
+		print(f"Missing setting .")
+		print("Valid:")
+		print("sha256vis -t theme_name")
+		print("sha256vis --theme theme_name")
+		print("Available themes: ", end="")
+		for name in allowed_themes[:-1]: print(name, end=", ")
+		print(allowed_themes[len(allowed_themes)-1])
+		exit()
 	theme = sys.argv[sys.argv.index("-t")+1] if "-t" in sys.argv else sys.argv[sys.argv.index("--theme")+1]
-	allowed_themes = {"blue", "red", "gold", "natur", "dim", "dark", "cyan", "soft-fall"}
 	if theme not in allowed_themes:
 		print(f"Theme name invalid: {theme}")
 		print("Available themes: blue, red, gold, natur, dim, dark, cyan, soft-fall")
+		exit()
 
 
 elif("-f" in sys.argv or "--file" in sys.argv):
@@ -134,24 +214,7 @@ if("-s" in sys.argv):
 
 
 
-
-
-
-
-
-
-
-
-
-
-# [==================================================]
-# for i in range(8):
-# 	for i2 in range(8):
-# 		print(((sha256_dvm[i][i2]+1)*16)-1, end=' ')
-# 	print()
-# [==================================================]
-# sha256 = str(input("sha256sum: "))
-# [===========[Manual input of hash check]===========]
+# [==========[Manual inputs of hash checks]==========]
 # Check length
 if git and len(sha256) != 40: 
 	print("Error: Git hash must be 40 characters long (SHA-1).")
@@ -172,15 +235,15 @@ if not all(valid_characters):
 	print()
 	exit()
 # [==================[ Processing ]==================]
-sha256_dv = [int(i, 16) for i in sha256] # dv  = Decimal Values
-sha256_dvm = []		 					 # dvm = Decimal Values Matrix
-for i in range(0, 8): sha256_dvm.append(sha256_dv[i*8:(i+1)*8])
+sha256_dv = [int(i, 16) for i in sha256] # dv  = Decimal Values         |   hex -> decimal -> list
+sha256_dvm = []		 					 # dvm = Decimal Values Matrix  |
+for i in range(0, 8): sha256_dvm.append(sha256_dv[i*8:(i+1)*8]) #       |   list[64] -> matrix[8][8]
 # [==================[Theme Loader]==================]
-theme = "./themes/" + theme + ".hex"
-with open(theme) as file:
-	theme = file.readlines()
-for i in range(16): theme[i] = theme[i].strip()
-for i in range(16): theme[i] = tuple(int(theme[i][i2:i2+2], 16) for i2 in [0, 2, 4])
+theme = "./themes/" + theme + ".hex" # insert theme name
+with open(theme) as file:            # open theme file
+	theme = file.readlines()         # theme is now list[16] of hex colors from theme
+for i in range(16): theme[i] = theme[i].strip() # strip '\n'
+for i in range(16): theme[i] = tuple(int(theme[i][i2:i2+2], 16) for i2 in [0, 2, 4]) # hex list[16] -> list of 16 decimal 3 tuple
 # [==================================================]
 
 
@@ -190,39 +253,22 @@ for i in range(16): theme[i] = tuple(int(theme[i][i2:i2+2], 16) for i2 in [0, 2,
 
 
 # [================[Rendering Image]=================]
-image = Image.new("L", (8, 8))
-if color: 
-	if git:
-		image = Image.new("RGB", (8, 5))
-		pixels = image.load()
-		for v in range(8):
-			for h in range(5):
-				pixels[v,h] = theme[sha256_dvm[h][v]]
-	else:
-		image = Image.new("RGB", (8, 8))
-		pixels = image.load()
-		for v in range(8):
-			for h in range(8):
-				pixels[v,h] = theme[sha256_dvm[h][v]]
-else:
-	if git:
-		image = Image.new("L", (8, 5))
-		pixels = image.load()
-		for v in range(8):
-			for h in range(5):
-				pixels[v,h] = ((sha256_dvm[h][v]+1)*16)-1
-	else:
-		image = Image.new("L", (8, 8))
-		pixels = image.load()
-		for v in range(8):
-			for h in range(8):
-				pixels[v,h] = ((sha256_dvm[h][v]+1)*16)-1
+
+if git: x, y = 8, 5
+else: x, y = 8, 8
+image = Image.new("RGB" if color else "L", (x, y))
+
+pixels = image.load()
+for v in range(x):
+	for h in range(y):
+		pixels[v,h] = theme[sha256_dvm[h][v]] if color else ((sha256_dvm[h][v]+1)*16)-1
 
 
+size = 8 * (2**(size_select-1))
+xsize, ysize = size, 5 * (2**(size_select-1)) if git else size
 
-if git: image.resize((size, 5 * (2**(size_select-1))), resample=Image.NEAREST).show()
-else: image.resize((size, size), resample=Image.NEAREST).show()
-
+image.resize((xsize, ysize), resample=Image.NEAREST).show()
+# [==================================================]
 
 
 
