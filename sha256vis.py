@@ -62,11 +62,13 @@ allowed_formats = ["png", "PNG", "jpg", "JPG", "jpeg", "JPEG", "bmp", "BMP", "pp
 # len(sys.argv) == 1 or 
 if len(sys.argv) == 2:
 	if(sys.argv[1] == "-h" or sys.argv[1] == "--help"):
-		helpPage = f"""Usage: sha256vis --hash 
+		helpPage = f"""Usage: sha256vis OPTIONS...
 Visualize SHA256 hash sum of a file or 
 
-With no flags, first and only argument is used as file input and the 
-visualization is shown in default image viewer.
+With no flags, print this help page and exit.
+
+Piping accessibility with both files and text:
+  sha256vis
 
   --config
         Change configuration for resolution and theme with persistence
@@ -94,13 +96,20 @@ visualization is shown in default image viewer.
   [-t red] [--theme gold]
   -o, --output      Output to file and (optionally) choose file name
   [-o] [--output] or [-o "output.png"] [--output "output.png"] 
-  -m, --mono       Black and white output.
   -g, --git         Use a git commit hash to generate 8x5 image
   [-g HASH] [--git HASH] (HASH has to be SHA-1)
+  -m, --mono        Black and white output. No arguments.
+  [-m] [--mono]
   -h, --help        Display this help and exit
+  [-h] [--help]
 
-Default output image filename is [7 characters from the hash].png 
-By default the image is colored and the default theme is {theme}.
+If output filename is "def", the file name will be the first 7 hex digits
+of the hash in a .png format.
+Current config:
+  theme: {theme}
+  size:  {size_select}
+  color: {color}
+  git:   {git}
 
 Examples:
   sha256vis filename.ext              Hashes file and visualizes hashsum.
@@ -337,17 +346,42 @@ if("-r" in sys.argv or "--resolution" in sys.argv):
 
 	# size_select updated
 
+if("-g" in sys.argv or "--git" in sys.argv):
+	if "-g" in sys.argv: # filter for missing hash (-g GIT-HASH) -> exit
+		if nextargument(sys.argv, "-g") == []: # filter for missing hash
+			print(f"Missing hash: -g GIT-HASH")
+			print("Where GIT-HASH is a git commit SHA-1 hash of length 40")
+			exit()
+		# hash - exists
+	if "--git" in sys.argv: # filter for missing hash (--git GIT-HASH) -> exit
+		if nextargument(sys.argv, "--git") == []: # filter for missing has
+			print(f"Missing hash: --git GIT-HASH")
+			print("Where GIT-HASH is a git commit SHA-1 hash of length 40")
+			exit()
+		# hash - exists
+	# hash - exists
+
+	git = True
+	sha256 = sys.argv[sys.argv.index("-g")+1] if "-g" in sys.argv else sys.argv[sys.argv.index("--git")+1]
+	# output filename inserted
+
 if("-o" in sys.argv or "--output" in sys.argv):
-	if "-o" in sys.argv: # filter for missing filename (-s filename.ext) -> exit
+	if "-o" in sys.argv: # filter for missing filename (-o filename.ext) -> exit
 		if nextargument(sys.argv, "-o") == []: # filter for missing filename
 			print(f"Missing filename argument: -o filename.ext")
 			print("Make sure to include the extension: .png, .jpg etc etc.")
+			print(f"Alternative option: --output def")
+			print("This sets the name of the file to the first 7 hex values")
+			print("of the hash")
 			exit()
 		# output - exists
-	if "--output" in sys.argv: # filter for missing filename (--filename filename.ext) -> exit
+	if "--output" in sys.argv: # filter for missing filename (--output filename.ext) -> exit
 		if nextargument(sys.argv, "--output") == []: # filter for missing filename
 			print(f"Missing filename argument: --output filename.ext")
 			print("Make sure to include the extension: .png, .jpg etc etc.")
+			print(f"Alternative option: --output def")
+			print("This sets the name of the file to the first 7 hex values")
+			print("of the hash")
 			exit()
 		# output - exists
 	# output - exists
@@ -355,6 +389,9 @@ if("-o" in sys.argv or "--output" in sys.argv):
 	output_to_file_flag = True
 	output_filename = sys.argv[sys.argv.index("-o")+1] if "-o" in sys.argv else sys.argv[sys.argv.index("--output")+1]
 	# output filename inserted
+
+	if output_filename == "def":
+		output_filename = sha256[:7] + ".png"
 
 	ext = "".join(output_filename.split(".")[-1:])
 	if ext not in allowed_formats:  # filter for incorrect format of .ext (--filename filename.ext) -> exit
@@ -364,35 +401,12 @@ if("-o" in sys.argv or "--output" in sys.argv):
 		print(allowed_formats[len(allowed_formats)-1])
 		exit()
 
-
-
-	
-
-# [===================[^^^DONE^^^]===================]
-	
-
-if("-e" in sys.argv or "--encrypt" in sys.argv):
-	encrypt_flag = True
-	decrypt_flag = False
-
-elif("-d" in sys.argv or "--decrypt" in sys.argv):
-	encrypt_flag = False
-	decrypt_flag = True
-
-if("-k" in sys.argv or "--key" in sys.argv):
-	custom_key_flag = True
-	key = str(sys.argv[sys.argv.index("-k")+1]) if "-k" in sys.argv else str(sys.argv[sys.argv.index("--key")+1])
-	if(key.isnumeric()): key = int(key)
-	else: key = int(sum([ord(letter) for letter in key]))
-
-
-
-
-
+if("-m" in sys.argv or "--mono" in sys.argv):
+	color = False
 
 # [==========[Manual inputs of hash checks]==========]
 # Check length
-if git and len(sha256) != 40: 
+if git and len(sha256) != 40: # filter for missing hash (-g GIT-HASH) -> exit
 	print("Error: Git hash must be 40 characters long (SHA-1).")
 	exit()
 if len(sha256) != 64 and not git: 
@@ -438,7 +452,6 @@ pixels = image.load()
 for v in range(x):
 	for h in range(y):
 		pixels[v,h] = theme[sha256_dvm[h][v]] if color else ((sha256_dvm[h][v]+1)*16)-1
-
 
 size = 8 * (2**(size_select-1))
 xsize, ysize = size, 5 * (2**(size_select-1)) if git else size
