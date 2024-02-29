@@ -27,7 +27,7 @@ def hashfile(filename):
 	        stack = file.read(2**16) # 64kb
 	        if not stack: break
 	        sha256hash.update(stack)
-	return sha256hash.hexdigest()
+	return str(sha256hash.hexdigest())
 
 def hashtext(text):
 	return hashlib.sha256(bytes(str(text), "UTF-8")).hexdigest()
@@ -196,11 +196,32 @@ if("-t" in sys.argv or "--theme" in sys.argv):
 	# setting theme changed for this call
 
 
-elif("-f" in sys.argv or "--file" in sys.argv):
+if("-f" in sys.argv or "--file" in sys.argv):
+	if "-f" in sys.argv: # filter for missing filename (-f filename.ext) -> exit
+		if nextargument(sys.argv, "-f") == []: # filter for missing filename
+			print(f"Missing file name: -f filename.ext")
+			exit()
+		# file name - exists
+	if "--file" in sys.argv: # filter for missing filename (--file filename.ext) -> exit
+		if nextargument(sys.argv, "--file") == []: # filter for missing filename
+			print(f"Missing file name: --file filename.ext")
+			exit()
+		# file name - exists
+	# file name - exists
+
 	output_to_file_flag = True
-	input_filename = sys.argv[sys.argv.index("-f")+1] if "-f" in sys.argv else sys.argv[sys.argv.index("--file")+1]
-	with open(str(input_filename)) as file:
-		input_string = str(file.read())
+	filename = sys.argv[sys.argv.index("-f")+1] if "-f" in sys.argv else sys.argv[sys.argv.index("--file")+1]
+	# taking file name
+
+	try: # opening file 
+		file = open(str(filename))
+	except FileNotFoundError: # filter filename.ext existing -> exit
+		print(f"Invalid file name: --file {filename}")
+		print("File does not exist.")
+		exit()
+	else:
+		sha256 = hashfile(str(filename))
+	# sha256 updated 
 	
 
 if("-o" in sys.argv or "--output" in sys.argv):
