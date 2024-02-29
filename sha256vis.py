@@ -277,7 +277,64 @@ if("-s" in sys.argv or "--hash" in sys.argv):
 	sha256 = str(sys.argv[sys.argv.index("-s")+1]) if "-s" in sys.argv else str(sys.argv[sys.argv.index("--hash")+1])
 	# sha256 updated - checked for invalid input in code below
 
+if("-r" in sys.argv or "--resolution" in sys.argv):
+	if "-r" in sys.argv: # filter for missing hash (-r HASH) -> exit
+		if nextargument(sys.argv, "-r") == []: # filter for missing hash
+			print(f"Missing number: -r N")
+			print("Available resolutions: ", end="")
+			for num in allowed_sizes[:-1]: print(num, end=", ")
+			print(allowed_sizes[len(allowed_sizes)-1])
+			print("Syntax: -r N")
+			print(" N   SHA256      SHA1 (Git)")
+			print(" 1 - 8x8       - 8x5")
+			print(" 2 - 16x16     - 16x10")
+			print(" 3 - 32x32     - 32x20")
+			print(" 4 - 64x64     - 64x40")
+			print(" 5 - 128x128   - 128x80")
+			print(" 6 - 256x256   - 256x160")
+			print(" 7 - 512x512   - 512x320")
+			print(" 8 - 1024x1024 - 1024x640")
+			print(" 9 - 2048x2048 - 2048x1280")
+			print("10 - 4096x4096 - 4096x2560")
+			exit()
+		# hash - exists
+	if "--resolution" in sys.argv: # filter for missing hash (--hash HASH) -> exit
+		if nextargument(sys.argv, "--resolution") == []: # filter for missing hash
+			print(f"Missing number: --resolution N")
+			print("Available resolutions: ", end="")
+			for num in allowed_sizes[:-1]: print(num, end=", ")
+			print(allowed_sizes[len(allowed_sizes)-1])
+			print("Syntax: --resolution N")
+			print(" N   SHA256      SHA1 (Git)")
+			print(" 1 - 8x8       - 8x5")
+			print(" 2 - 16x16     - 16x10")
+			print(" 3 - 32x32     - 32x20")
+			print(" 4 - 64x64     - 64x40")
+			print(" 5 - 128x128   - 128x80")
+			print(" 6 - 256x256   - 256x160")
+			print(" 7 - 512x512   - 512x320")
+			print(" 8 - 1024x1024 - 1024x640")
+			print(" 9 - 2048x2048 - 2048x1280")
+			print("10 - 4096x4096 - 4096x2560")
+			exit()
+		# hash - exists
+	# hash input - exists
 
+	size_select = str(sys.argv[sys.argv.index("-r")+1]) if "-r" in sys.argv else str(sys.argv[sys.argv.index("--resolution")+1])
+
+	if not size_select.isdigit(): # check if size is an integer (--config size N) -> exit
+		print(f"Size invalid: {size_select}")
+		print("Size needs to be an integer.")
+		exit()
+	if int(size_select) not in allowed_sizes: # check if size is valid (--config size N) -> exit
+		print(f"Size invalid: {size_select}")
+		print("Available sizes: ", end="")
+		for num in allowed_sizes[:-1]: print(num, end=", ")
+		print(allowed_sizes[len(allowed_sizes)-1])
+		exit()
+	size_select = int(size_select)
+
+	# size_select updated
 
 	
 
