@@ -53,6 +53,7 @@ git = config.getboolean("options", "git")
 #-------------------
 allowed_themes = ["blue", "red", "gold", "natur", "dim", "dark", "cyan", "soft-fall"]
 allowed_sizes = [*range(1, 11)]
+allowed_formats = ["png", "PNG", "jpg", "JPG", "jpeg", "JPEG", "bmp", "BMP", "ppm", "PPM"]
 #------------------------------
 
 
@@ -336,13 +337,39 @@ if("-r" in sys.argv or "--resolution" in sys.argv):
 
 	# size_select updated
 
+if("-o" in sys.argv or "--output" in sys.argv):
+	if "-o" in sys.argv: # filter for missing filename (-s filename.ext) -> exit
+		if nextargument(sys.argv, "-o") == []: # filter for missing filename
+			print(f"Missing filename argument: -o filename.ext")
+			print("Make sure to include the extension: .png, .jpg etc etc.")
+			exit()
+		# output - exists
+	if "--output" in sys.argv: # filter for missing filename (--filename filename.ext) -> exit
+		if nextargument(sys.argv, "--output") == []: # filter for missing filename
+			print(f"Missing filename argument: --output filename.ext")
+			print("Make sure to include the extension: .png, .jpg etc etc.")
+			exit()
+		# output - exists
+	# output - exists
+
+	output_to_file_flag = True
+	output_filename = sys.argv[sys.argv.index("-o")+1] if "-o" in sys.argv else sys.argv[sys.argv.index("--output")+1]
+	# output filename inserted
+
+	ext = "".join(output_filename.split(".")[-1:])
+	if ext not in allowed_formats:  # filter for incorrect format of .ext (--filename filename.ext) -> exit
+		print(f"Incorrect output file format: .{ext}")
+		print("Available formats: ", end="")
+		for ext in allowed_formats[:-1]: print(f".{ext}", end=", ")
+		print(allowed_formats[len(allowed_formats)-1])
+		exit()
+
+
+
 	
 
 # [===================[^^^DONE^^^]===================]
 	
-if("-o" in sys.argv or "--output" in sys.argv):
-	output_to_file_flag = True
-	output_filename = sys.argv[sys.argv.index("-o")+1] if "-o" in sys.argv else sys.argv[sys.argv.index("--output")+1]
 
 if("-e" in sys.argv or "--encrypt" in sys.argv):
 	encrypt_flag = True
@@ -416,7 +443,9 @@ for v in range(x):
 size = 8 * (2**(size_select-1))
 xsize, ysize = size, 5 * (2**(size_select-1)) if git else size
 
-image.resize((xsize, ysize), resample=Image.NEAREST).show()
+# [=============[Resize and output Image]============]
+if output_to_file_flag: image.resize((xsize, ysize), resample=Image.NEAREST).save(str(output_filename))
+else: image.resize((xsize, ysize), resample=Image.NEAREST).show()
 # [==================================================]
 
 
