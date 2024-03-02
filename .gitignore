@@ -1,2 +1,3 @@
-*.out
-gitignore/
+/gitignore/
+/themes/reverse.py
+update_image.sh
