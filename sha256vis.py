@@ -474,4 +474,5 @@ def start():
 	else: image.resize((xsize, ysize), resample=Image.NEAREST).show()
 	# [==================================================]
 
-start()
+if __name__ == "__main__":
+	start()
