@@ -6,7 +6,7 @@ import configparser
 
 def start():
 	config = configparser.ConfigParser()
-	config.read("config.ini")
+	config.read("./conf/config.ini")
 
 	image = Image.new("RGB", (8, 8))
 	# [==================================================] git rev-parse HEAD for hash
@@ -19,7 +19,7 @@ def start():
 		return argv[argv.index(str(opt))+1:argv.index(str(opt))+2]
 
 	def updateconf(config): # config - configparser object -> modify config.ini 
-		with open("config.ini", "w") as conf:
+		with open("./conf/config.ini", "w") as conf:
 			config.write(conf)
 	# [=================[Hash functions]=================]
 	def hashfile(filename): # return file sha256sum hash in hex string
@@ -452,7 +452,7 @@ def start():
 	sha256_dvm = []		 					 # dvm = Decimal Values Matrix  |
 	for i in range(0, 8): sha256_dvm.append(sha256_dv[i*8:(i+1)*8]) #       |   list[64] -> matrix[8][8]
 	# [==================[Theme Loader]==================]
-	theme = "./themes/" + theme + ".hex" # insert theme name
+	theme = "./conf/themes/" + theme + ".hex" # insert theme name
 	with open(theme) as file:            # open theme file
 		theme = file.readlines()         # theme is now list[16] of hex colors from theme
 	for i in range(16): theme[i] = theme[i].strip() # strip '\n'
