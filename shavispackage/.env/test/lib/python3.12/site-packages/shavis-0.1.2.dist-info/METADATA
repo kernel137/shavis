@@ -1,0 +1,13 @@
+Metadata-Version: 2.1
+Name: shavis
+Version: 0.1.2
+Summary: SHA256 and SHA1 hash image generator
+Author: kernel137
+Author-email: kostamecev@pm.me
+License: GNU GPLv3
+Keywords: sha256,sha1,image-generator
+Requires-Dist: pillow
+Requires-Dist: configparser
+Requires-Dist: pathlib
+
+This package visualizes the resulting hash sum for SHA256 and for SHA1, turning them into a intuitive and easier to understand image compared to the pure hash, these can be styled with custom themes.
