@@ -69,3 +69,4 @@ Piping accessibility examples:
 
 Check out the project at: https://github.com/kernel137/shavis
 ```
+_**I am aware of the argparse or click python modules for argument parsing**, I wanted to experiment by creating my own argument parser by hand, in  the future I'll probably move argument parsing to one of those modules for stability._
