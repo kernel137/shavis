@@ -1,10 +1,60 @@
-from PIL import Image
-import sys
 import os
+import sys
 import hashlib
 import configparser
 
+from PIL import Image
+
+
+def nextargument(argv: list[str], opt: str) -> str:
+    
+	'''
+		Return next member of specified option flag
+ 	'''
+  
+	return argv[(argv.index(opt) + 1):(argv.index(opt) + 2)]
+
+
+def updateconf(config: configparser.ConfigParser) -> None:
+    
+	'''
+		Update `config.ini` file with given `ConfigParser` object
+ 	'''
+    
+	with open("./conf/config.ini", "w") as conf:
+		config.write(conf)
+  
+
+# [=================[Hash functions]=================]
+def hashfile(filename: str) -> str:
+
+	'''
+		Return file's sha256 hash sum in a form of hex string
+	'''
+
+	sha256hash = hashlib.sha256()
+
+	with open(filename, 'rb') as file:
+
+		while True:
+			stack = file.read(2**16) # 64kb
+			if not stack: break
+			sha256hash.update(stack)
+
+	return sha256hash.hexdigest()
+
+
+def hashtext(text: str) -> str:
+    
+	'''
+		Return input string's sha256 hash sum in a form of hex string
+	'''
+
+	return hashlib.sha256(bytes(str(text), "UTF-8")).hexdigest()
+
+
 def start():
+    
 	config = configparser.ConfigParser()
 	config.read("./conf/config.ini")
 
@@ -14,25 +64,7 @@ def start():
 	# sha256 = "c02fa35ab353e05d657513b89ec14ef838cf60dc" # git
 	# sha256 = "94be53125e66d7713f5545a92857666ff456f1bd7ca65edb57d0c0a43dfffe37"
 	# sha256 = "7f83 b165   7ff1 fc53   b92d c181   48a1 d65d   fc2d 4b1f   a3d6 7728   4add d200   126d 9069".replace(" ", "")
-	# [====================[Functions]===================]
-	def nextargument(argv, opt): # return list member next to opt
-		return argv[argv.index(str(opt))+1:argv.index(str(opt))+2]
-
-	def updateconf(config): # config - configparser object -> modify config.ini 
-		with open("./conf/config.ini", "w") as conf:
-			config.write(conf)
-	# [=================[Hash functions]=================]
-	def hashfile(filename): # return file sha256sum hash in hex string
-		sha256hash = hashlib.sha256()
-		with open(filename, 'rb') as file:
-		    while True:
-		        stack = file.read(2**16) # 64kb
-		        if not stack: break
-		        sha256hash.update(stack)
-		return str(sha256hash.hexdigest())
-
-	def hashtext(text): # return text sha256sum hash in hex string
-		return hashlib.sha256(bytes(str(text), "UTF-8")).hexdigest()
+	
 	# [===================[Parameters]===================]
 	output_to_file_flag = False
 	output_filename = "output.txt"

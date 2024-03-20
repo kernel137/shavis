@@ -1,9 +1,57 @@
-from PIL import Image
-import sys
 import os
+import sys
 import hashlib
-import configparser
 import pathlib
+import configparser
+
+from PIL import Image
+
+
+def nextargument(argv: list[str], opt: str) -> str:
+    
+	'''
+		Return next member of specified option flag
+ 	'''
+  
+	return argv[(argv.index(opt) + 1):(argv.index(opt) + 2)]
+
+
+def updateconf(config: configparser.ConfigParser, config_path: str) -> None:
+    
+	'''
+		Update `config.ini` file with given `ConfigParser` object
+ 	'''
+    
+	with open(config_path, "w") as conf:
+		config.write(conf)
+  
+
+# [=================[Hash functions]=================]
+def hashfile(filename: str) -> str:
+
+	'''
+		Return file's sha256 hash sum in a form of hex string
+	'''
+
+	sha256hash = hashlib.sha256()
+
+	with open(filename, 'rb') as file:
+
+		while True:
+			stack = file.read(2**16) # 64kb
+			if not stack: break
+			sha256hash.update(stack)
+
+	return sha256hash.hexdigest()
+
+
+def hashtext(text: str) -> str:
+    
+	'''
+		Return input string's sha256 hash sum in a form of hex string
+	'''
+
+	return hashlib.sha256(bytes(str(text), "UTF-8")).hexdigest()
 
 
 def start():
@@ -17,25 +65,7 @@ def start():
 	image = Image.new("RGB", (8, 8))
 	# [==================================================]
 	sha256 = ""
-	# [====================[Functions]===================]
-	def nextargument(argv, opt): # return list member next to opt
-		return argv[argv.index(str(opt))+1:argv.index(str(opt))+2]
-
-	def updateconf(config): # config - configparser object -> modify config.ini 
-		with open(config_dir, "w") as conf:
-			config.write(conf)
-	# [=================[Hash functions]=================]
-	def hashfile(filename): # return file sha256sum hash in hex string
-		sha256hash = hashlib.sha256()
-		with open(filename, 'rb') as file:
-		    while True:
-		        stack = file.read(2**16) # 64kb
-		        if not stack: break
-		        sha256hash.update(stack)
-		return str(sha256hash.hexdigest())
-
-	def hashtext(text): # return text sha256sum hash in hex string
-		return hashlib.sha256(bytes(str(text), "UTF-8")).hexdigest()
+	
 	# [===================[Parameters]===================]
 	output_to_file_flag = False
 	output_filename = "output.txt"
@@ -168,7 +198,7 @@ Check out the project at: https://github.com/kernel137/shavis
 				exit()
 			size_select = int(size_select)
 			config.set("options", "size", str(size_select))
-			updateconf(config)
+			updateconf(config, config_dir)
 			exit()
 
 		if option == "theme": # filter and update theme config (--config theme name) -> exit
@@ -180,7 +210,7 @@ Check out the project at: https://github.com/kernel137/shavis
 				print(allowed_themes[len(allowed_themes)-1])
 				exit()
 			config.set("options", "theme", str(theme))
-			updateconf(config)
+			updateconf(config, config_dir)
 			exit()
 
 		if option == "color": # filter and update color config (--config color bool) -> exit
@@ -193,7 +223,7 @@ Check out the project at: https://github.com/kernel137/shavis
 				print("Invalid boolean value: --config color VALUE")
 				print("Use a boolean as value for color.")
 				exit()
-			updateconf(config)
+			updateconf(config, config_dir)
 			exit()
 
 		if option == "git": # filter and update git config (--config git bool) -> exit
@@ -206,7 +236,7 @@ Check out the project at: https://github.com/kernel137/shavis
 				print("Invalid boolean value: --config git VALUE")
 				print("Use a boolean as value for git.")
 				exit()
-			updateconf(config)
+			updateconf(config, config_dir)
 			exit()
 
 	if("-f" in sys.argv or "--file" in sys.argv):
