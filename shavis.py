@@ -1,10 +1,60 @@
-from PIL import Image
-import sys
 import os
+import sys
+import string
 import hashlib
 import configparser
 
+from PIL import Image
+
+def nextargument(argv: list[str], opt: str) -> str:
+    
+	'''
+		Return next member of specified option flag
+ 	'''
+  
+	return argv[(argv.index(opt) + 1):(argv.index(opt) + 2)]
+
+
+def updateconf(config: configparser.ConfigParser) -> None:
+    
+	'''
+		Update `config.ini` file with given `ConfigParser` object
+ 	'''
+    
+	with open("./conf/config.ini", "w") as conf:
+		config.write(conf)
+  
+
+# [=================[Hash functions]=================]
+def hashfile(filename: str) -> str:
+
+	'''
+		Return file's sha256 hash sum in a form of hex string
+	'''
+
+	sha256hash = hashlib.sha256()
+
+	with open(filename, 'rb') as file:
+
+		while True:
+			stack = file.read(2**16) # 64kb
+			if not stack: break
+			sha256hash.update(stack)
+
+	return sha256hash.hexdigest()
+
+
+def hashtext(text: str) -> str:
+    
+	'''
+		Return input string's sha256 hash sum in a form of hex string
+	'''
+
+	return hashlib.sha256(bytes(str(text), "UTF-8")).hexdigest()
+
+
 def start():
+    
 	config = configparser.ConfigParser()
 	config.read("./conf/config.ini")
 
@@ -14,25 +64,7 @@ def start():
 	# sha256 = "c02fa35ab353e05d657513b89ec14ef838cf60dc" # git
 	# sha256 = "94be53125e66d7713f5545a92857666ff456f1bd7ca65edb57d0c0a43dfffe37"
 	# sha256 = "7f83 b165   7ff1 fc53   b92d c181   48a1 d65d   fc2d 4b1f   a3d6 7728   4add d200   126d 9069".replace(" ", "")
-	# [====================[Functions]===================]
-	def nextargument(argv, opt): # return list member next to opt
-		return argv[argv.index(str(opt))+1:argv.index(str(opt))+2]
-
-	def updateconf(config): # config - configparser object -> modify config.ini 
-		with open("./conf/config.ini", "w") as conf:
-			config.write(conf)
-	# [=================[Hash functions]=================]
-	def hashfile(filename): # return file sha256sum hash in hex string
-		sha256hash = hashlib.sha256()
-		with open(filename, 'rb') as file:
-		    while True:
-		        stack = file.read(2**16) # 64kb
-		        if not stack: break
-		        sha256hash.update(stack)
-		return str(sha256hash.hexdigest())
-
-	def hashtext(text): # return text sha256sum hash in hex string
-		return hashlib.sha256(bytes(str(text), "UTF-8")).hexdigest()
+	
 	# [===================[Parameters]===================]
 	output_to_file_flag = False
 	output_filename = "output.txt"
@@ -106,7 +138,7 @@ Piping accessibility examples:
 Check out the project at: https://github.com/kernel137/shavis
 	"""
 		print(helpPage)
-		exit()
+		exit(1)
 	# [===============[Options Processing]===============]
 
 	if("--config" in sys.argv):
@@ -115,7 +147,7 @@ Check out the project at: https://github.com/kernel137/shavis
 		if config_nextarg == []: # filter for missing option (--config option) -> exit
 			print(f"Missing option: --config OPTION")
 			print("Valid options: theme, size, color, git, list")
-			exit()
+			exit(1)
 		# option - exists
 
 		option = sys.argv[sys.argv.index("--config")+1] 
@@ -124,7 +156,7 @@ Check out the project at: https://github.com/kernel137/shavis
 		if option not in ["theme", "size", "color", "git", "list"]: # filter for wrong option (--config option) -> exit
 			print(f"Invalid option: {option}")
 			print("Valid options: theme, size, color, git, list")
-			exit()
+			exit(1)
 		# option = theme or size or list
 
 		if option == "list": # list current config (--config list) -> exit
@@ -133,7 +165,7 @@ Check out the project at: https://github.com/kernel137/shavis
 			print("size: " + str(config["options"]["size"]))
 			print("color: " + str(config.getboolean("options", "color")))
 			print("git: " + str(config.getboolean("options", "git")))
-			exit()
+			exit(1)
 
 		if nextargument(sys.argv, option) == []: # filter for missing argument (--config option argument) -> exit
 			print(f"Missing setting argument: --config {option} arg")
@@ -148,7 +180,7 @@ Check out the project at: https://github.com/kernel137/shavis
 			if option == "git": 
 				print("Available values: True, False", end="")
 			print()
-			exit()
+			exit(1)
 		# argument - exists
 
 		if option == "size": # filter and update size config (--config size N) -> exit
@@ -156,17 +188,17 @@ Check out the project at: https://github.com/kernel137/shavis
 			if not size_select.isdigit(): # check if size is an integer (--config size N) -> exit
 				print(f"Size invalid: {size_select}")
 				print("Size needs to be an integer.")
-				exit()
+				exit(1)
 			if int(size_select) not in allowed_sizes: # check if size is valid (--config size N) -> exit
 				print(f"Size invalid: {size_select}")
 				print("Available sizes: ", end="")
 				for num in allowed_sizes[:-1]: print(num, end=", ")
 				print(allowed_sizes[len(allowed_sizes)-1])
-				exit()
+				exit(1)
 			size_select = int(size_select)
 			config.set("options", "size", str(size_select))
 			updateconf(config)
-			exit()
+			exit(1)
 
 		if option == "theme": # filter and update theme config (--config theme name) -> exit
 			theme = sys.argv[sys.argv.index("theme")+1]
@@ -175,23 +207,28 @@ Check out the project at: https://github.com/kernel137/shavis
 				print("Available themes: ", end="")
 				for name in allowed_themes[:-1]: print(name, end=", ")
 				print(allowed_themes[len(allowed_themes)-1])
-				exit()
+				exit(1)
 			config.set("options", "theme", str(theme))
 			updateconf(config)
-			exit()
+			exit(1)
 
 		if option == "color": # filter and update color config (--config color bool) -> exit
-			color = sys.argv[sys.argv.index("color")+1]
+      
+			color = sys.argv[sys.argv.index("color") + 1]
+   
 			if color.lower() in ["true", "t", "y", "yes", "yeah", "mhm", "yup"]:
 				config.set("options", "color", "True")
+    
 			elif color.lower() in ["false", "f", "n", "no", "nah", "nuhuh", "nope"]:
 				config.set("options", "color", "False")
+    
 			else:
 				print("Invalid boolean value: --config color VALUE")
 				print("Use a boolean as value for color.")
-				exit()
+				exit(1)
+    
 			updateconf(config)
-			exit()
+			exit(1)
 
 		if option == "git": # filter and update git config (--config git bool) -> exit
 			git = sys.argv[sys.argv.index("git")+1]
@@ -202,20 +239,20 @@ Check out the project at: https://github.com/kernel137/shavis
 			else:
 				print("Invalid boolean value: --config git VALUE")
 				print("Use a boolean as value for git.")
-				exit()
+				exit(1)
 			updateconf(config)
-			exit()
+			exit(1)
 
 	if("-f" in sys.argv or "--file" in sys.argv):
 		if "-f" in sys.argv: # filter for missing filename (-f filename.ext) -> exit
 			if nextargument(sys.argv, "-f") == []: # filter for missing filename
 				print(f"Missing file name: -f filename.ext")
-				exit()
+				exit(1)
 			# file name - exists
 		if "--file" in sys.argv: # filter for missing filename (--file filename.ext) -> exit
 			if nextargument(sys.argv, "--file") == []: # filter for missing filename
 				print(f"Missing file name: --file filename.ext")
-				exit()
+				exit(1)
 			# file name - exists
 		# file name - exists
 
@@ -227,7 +264,7 @@ Check out the project at: https://github.com/kernel137/shavis
 		except FileNotFoundError: # filter filename.ext existing -> exit
 			print(f"Invalid file name: --file {filename}")
 			print("File does not exist.")
-			exit()
+			exit(1)
 		else:
 			sha256 = hashfile(str(filename))
 		# sha256 updated 
@@ -239,7 +276,7 @@ Check out the project at: https://github.com/kernel137/shavis
 				print("Available themes: ", end="")
 				for name in allowed_themes[:-1]: print(name, end=", ")
 				print(allowed_themes[len(allowed_themes)-1])
-				exit()
+				exit(1)
 			# setting - exists
 		if "--theme" in sys.argv: # filter for missing option (--theme option) -> exit
 			if nextargument(sys.argv, "--theme") == []: # filter for missing setting
@@ -247,7 +284,7 @@ Check out the project at: https://github.com/kernel137/shavis
 				print("Available themes: ", end="")
 				for name in allowed_themes[:-1]: print(name, end=", ")
 				print(allowed_themes[len(allowed_themes)-1])
-				exit()
+				exit(1)
 			# setting - exists
 		# setting - exists
 
@@ -257,7 +294,7 @@ Check out the project at: https://github.com/kernel137/shavis
 		if theme not in allowed_themes: # filter for wrong option (--theme option) -> exit
 			print(f"Theme name invalid: -t/--theme theme_name")
 			print("Available themes: blue, red, gold, natur, dim, dark, cyan, soft-fall")
-			exit()
+			exit(1)
 
 		# setting theme changed for this call
 
@@ -265,12 +302,12 @@ Check out the project at: https://github.com/kernel137/shavis
 		if "-s" in sys.argv: # filter for missing hash (-s HASH) -> exit
 			if nextargument(sys.argv, "-s") == []: # filter for missing hash
 				print(f"Missing hash: -s HASH")
-				exit()
+				exit(1)
 			# hash - exists
 		if "--hash" in sys.argv: # filter for missing hash (--hash HASH) -> exit
 			if nextargument(sys.argv, "--hash") == []: # filter for missing hash
 				print(f"Missing hash: --hash HASH")
-				exit()
+				exit(1)
 			# hash - exists
 		# hash input - exists
 
@@ -296,7 +333,7 @@ Check out the project at: https://github.com/kernel137/shavis
 				print(" 8 - 1024x1024 - 1024x640")
 				print(" 9 - 2048x2048 - 2048x1280")
 				print("10 - 4096x4096 - 4096x2560")
-				exit()
+				exit(1)
 			# hash - exists
 		if "--resolution" in sys.argv: # filter for missing hash (--hash HASH) -> exit
 			if nextargument(sys.argv, "--resolution") == []: # filter for missing hash
@@ -316,7 +353,7 @@ Check out the project at: https://github.com/kernel137/shavis
 				print(" 8 - 1024x1024 - 1024x640")
 				print(" 9 - 2048x2048 - 2048x1280")
 				print("10 - 4096x4096 - 4096x2560")
-				exit()
+				exit(1)
 			# hash - exists
 		# hash input - exists
 
@@ -325,13 +362,13 @@ Check out the project at: https://github.com/kernel137/shavis
 		if not size_select.isdigit(): # check if size is an integer (--config size N) -> exit
 			print(f"Size invalid: {size_select}")
 			print("Size needs to be an integer.")
-			exit()
+			exit(1)
 		if int(size_select) not in allowed_sizes: # check if size is valid (--config size N) -> exit
 			print(f"Size invalid: {size_select}")
 			print("Available sizes: ", end="")
 			for num in allowed_sizes[:-1]: print(num, end=", ")
 			print(allowed_sizes[len(allowed_sizes)-1])
-			exit()
+			exit(1)
 		size_select = int(size_select)
 
 		# size_select updated
@@ -342,13 +379,13 @@ Check out the project at: https://github.com/kernel137/shavis
 			if nextargument(sys.argv, "-g") == []: # filter for missing hash
 				print(f"Missing hash: -g GIT-HASH")
 				print("Where GIT-HASH is a git commit SHA-1 hash of length 40")
-				exit()
+				exit(1)
 			# hash - exists
 		elif "--git" in sys.argv: # filter for missing hash (--git GIT-HASH) -> exit
 			if nextargument(sys.argv, "--git") == []: # filter for missing has
 				print(f"Missing hash: --git GIT-HASH")
 				print("Where GIT-HASH is a git commit SHA-1 hash of length 40")
-				exit()
+				exit(1)
 			# hash - exists
 		# hash - exists
 
@@ -365,7 +402,7 @@ Check out the project at: https://github.com/kernel137/shavis
 				print(f"Alternative option: --output def")
 				print("This sets the name of the file to the first 7 hex values")
 				print("of the hash")
-				exit()
+				exit(1)
 			# output - exists
 		if "--output" in sys.argv: # filter for missing filename (--output filename.ext) -> exit
 			if nextargument(sys.argv, "--output") == []: # filter for missing filename
@@ -374,7 +411,7 @@ Check out the project at: https://github.com/kernel137/shavis
 				print(f"Alternative option: --output def")
 				print("This sets the name of the file to the first 7 hex values")
 				print("of the hash")
-				exit()
+				exit(1)
 			# output - exists
 		# output - exists
 
@@ -391,7 +428,7 @@ Check out the project at: https://github.com/kernel137/shavis
 			print("Available formats: ", end="")
 			for ext in allowed_formats[:-1]: print(f".{ext}", end=", ")
 			print(allowed_formats[len(allowed_formats)-1])
-			exit()
+			exit(1)
 
 	if("-m" in sys.argv or "--mono" in sys.argv):
 		color = False
@@ -412,7 +449,7 @@ Check out the project at: https://github.com/kernel137/shavis
 			except FileNotFoundError: # filter filename.ext existing -> exit
 				print(f"Invalid file name: --file {filename}")
 				print("File does not exist.")
-				exit()
+				exit(1)
 			else:
 				sha256 = hashfile(str(filename))
 		else:
@@ -426,54 +463,65 @@ Check out the project at: https://github.com/kernel137/shavis
 			print("Or inputting hash manually with:")
 			print("  sha256vis --git GIT-HASH")
 			print("  sha256vis --hash HASH")
-			exit()
+			exit(1)
 
 	# [==========[Manual inputs of hash checks]==========]
 	# Check length
 	if git and len(sha256) != 40: # filter for missing hash (-g GIT-HASH) -> exit
 		print("Error: Git hash must be 40 characters long (SHA-1).")
 		print(f"[{sha256}]")
-		exit()
+		exit(1)
 	if not git and len(sha256) != 64: # filter for missing hash -> exit
 		print("Error: Input must be 64 characters long.")
-		exit()
+		exit(1)
 
 	# Check for invalid characters (And point them out!!!)
-	hex_allowed = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "a", "b", "c", "d", "e", "f"]
-	valid_characters = [i in hex_allowed for i in sha256]
+	valid_characters = [i in string.hexdigits for i in sha256]
+ 
 	if not all(valid_characters): 
+
 		print("Error: Invalid SHA256 hashsum character in string.")
 		print(sha256)
-		for i in range(len(valid_characters)):
-			if not valid_characters[i]: print("↑", end='')
+  
+		for char in valid_characters:
+			if not char: print("↑", end='')
 			else: print(" ", end='')
+   
 		print()
-		exit()
+		exit(1)
+
 	# [==================[ Processing ]==================]
 	sha256_dv = [int(i, 16) for i in sha256] # dv  = Decimal Values         |   hex -> decimal -> list
 	sha256_dvm = []		 					 # dvm = Decimal Values Matrix  |
 	for i in range(0, 8): sha256_dvm.append(sha256_dv[i*8:(i+1)*8]) #       |   list[64] -> matrix[8][8]
+ 
 	# [==================[Theme Loader]==================]
-	theme = "./conf/themes/" + theme + ".hex" # insert theme name
-	with open(theme) as file:            # open theme file
+ 
+	theme_path = f"./conf/themes/{theme}.hex" # insert theme name
+ 
+	with open(theme_path) as file:            # open theme file
 		theme = file.readlines()         # theme is now list[16] of hex colors from theme
-	for i in range(16): theme[i] = theme[i].strip() # strip '\n'
-	for i in range(16): theme[i] = tuple(int(theme[i][i2:i2+2], 16) for i2 in [0, 2, 4]) # hex list[16] -> list of 16 decimal 3 tuple
-	# [================[Rendering Image]=================]
-	if git: x, y = 8, 5
-	else: x, y = 8, 8
+  
+	for i in range(16): 
+		theme[i] = theme[i].strip() # strip '\n'
+		theme[i] = tuple(int(theme[i][i2:i2+2], 16) for i2 in [0, 2, 4]) # hex list[16] -> list of 16 decimal 3 tuple
+	
+ 	# [================[Rendering Image]=================]
+	(x, y) = (8, 5) if git else (8, 8)
+ 
 	image = Image.new("RGB" if color else "L", (x, y))
-
 	pixels = image.load()
+ 
 	for v in range(x):
 		for h in range(y):
 			pixels[v,h] = theme[sha256_dvm[h][v]] if color else ((sha256_dvm[h][v]+1)*16)-1
 
 	size = 8 * (2**(size_select-1))
-	xsize, ysize = size, 5 * (2**(size_select-1)) if git else size
+	(xsize, ysize) = (size, 5 * (2**(size_select-1))) if git else size
+
 	# [=============[Resize and output Image]============]
-	if output_to_file_flag: image.resize((xsize, ysize), resample=Image.NEAREST).save(str(output_filename))
-	else: image.resize((xsize, ysize), resample=Image.NEAREST).show()
+	if output_to_file_flag: image.resize((xsize, ysize), resample=Image.Resampling.NEAREST).save(output_filename)
+	else: image.resize((xsize, ysize), resample=Image.Resampling.NEAREST).show()
 	# [==================================================]
 
 if __name__ == "__main__":
