@@ -8,7 +8,7 @@ import configparser
 from PIL import Image
 
 
-def nextargument(argv: list[str], opt: str) -> str:
+def nextargument(argv: list[str], opt: str) -> list:
     
 	'''
 		Return next member of specified option flag
@@ -144,9 +144,8 @@ Check out the project at: https://github.com/kernel137/shavis
 	# [===============[Options Processing]===============]
 
 	if("--config" in sys.argv):
-		config_nextarg = nextargument(sys.argv, "--config")
 
-		if config_nextarg == []: # filter for missing option (--config option) -> exit
+		if nextargument(sys.argv, "--config") == []: # filter for missing option (--config option) -> exit
 			print(f"Missing option: --config OPTION")
 			print("Valid options: theme, size, color, git, list")
 			exit(1) # error exit
