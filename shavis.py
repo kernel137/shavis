@@ -496,7 +496,7 @@ Check out the project at: https://github.com/kernel137/shavis
  
 	theme = theme_dir / (theme + ".hex") # insert theme name
  
-	with open(theme_path) as file:            # open theme file
+	with open(theme) as file:            # open theme file
 		theme = file.readlines()         # theme is now list[16] of hex colors from theme
   
 	for i in range(16): 
@@ -514,6 +514,7 @@ Check out the project at: https://github.com/kernel137/shavis
 			pixels[v,h] = theme[sha256_dvm[h][v]] if color else ((sha256_dvm[h][v]+1)*16)-1
 
 	size = 8 * (2**(size_select-1))
+	size = (size, size)
 	(xsize, ysize) = (size, 5 * (2**(size_select-1))) if git else size
 
 	# [=============[Resize and output Image]============]
