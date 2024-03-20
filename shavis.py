@@ -1,10 +1,10 @@
 import os
 import sys
+import string
 import hashlib
 import configparser
 
 from PIL import Image
-
 
 def nextargument(argv: list[str], opt: str) -> str:
     
@@ -476,16 +476,20 @@ Check out the project at: https://github.com/kernel137/shavis
 		exit()
 
 	# Check for invalid characters (And point them out!!!)
-	hex_allowed = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "a", "b", "c", "d", "e", "f"]
-	valid_characters = [i in hex_allowed for i in sha256]
+	valid_characters = [i in string.hexdigits for i in sha256]
+ 
 	if not all(valid_characters): 
+
 		print("Error: Invalid SHA256 hashsum character in string.")
 		print(sha256)
-		for i in range(len(valid_characters)):
-			if not valid_characters[i]: print("↑", end='')
+  
+		for char in valid_characters:
+			if not char: print("↑", end='')
 			else: print(" ", end='')
+   
 		print()
 		exit()
+
 	# [==================[ Processing ]==================]
 	sha256_dv = [int(i, 16) for i in sha256] # dv  = Decimal Values         |   hex -> decimal -> list
 	sha256_dvm = []		 					 # dvm = Decimal Values Matrix  |
