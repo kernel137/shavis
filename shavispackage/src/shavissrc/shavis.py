@@ -491,12 +491,17 @@ Check out the project at: https://github.com/kernel137/shavis
 	sha256_dv = [int(i, 16) for i in sha256] # dv  = Decimal Values         |   hex -> decimal -> list
 	sha256_dvm = []		 					 # dvm = Decimal Values Matrix  |
 	for i in range(0, 8): sha256_dvm.append(sha256_dv[i*8:(i+1)*8]) #       |   list[64] -> matrix[8][8]
+ 
 	# [==================[Theme Loader]==================]
-	theme = theme_dir / (theme + ".hex") # insert theme name
-	with open(theme) as file:            # open theme file
+ 
+	theme_path = f"./conf/themes/{theme}.hex" # insert theme name
+ 
+	with open(theme_path) as file:            # open theme file
 		theme = file.readlines()         # theme is now list[16] of hex colors from theme
-	for i in range(16): theme[i] = theme[i].strip() # strip '\n'
-	for i in range(16): theme[i] = tuple(int(theme[i][i2:i2+2], 16) for i2 in [0, 2, 4]) # hex list[16] -> list of 16 decimal 3 tuple
+  
+	for i in range(16): 
+		theme[i] = theme[i].strip() # strip '\n'
+		theme[i] = tuple(int(theme[i][i2:i2+2], 16) for i2 in [0, 2, 4]) # hex list[16] -> list of 16 decimal 3 tuple
  	
   	# [================[Rendering Image]=================]
 	(x, y) = (8, 5) if git else (8, 8)
