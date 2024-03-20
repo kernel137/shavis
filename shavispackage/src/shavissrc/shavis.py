@@ -494,7 +494,7 @@ Check out the project at: https://github.com/kernel137/shavis
  
 	# [==================[Theme Loader]==================]
  
-	theme_path = f"./conf/themes/{theme}.hex" # insert theme name
+	theme = theme_dir / (theme + ".hex") # insert theme name
  
 	with open(theme_path) as file:            # open theme file
 		theme = file.readlines()         # theme is now list[16] of hex colors from theme

@@ -2,9 +2,11 @@ import os
 import sys
 import string
 import hashlib
+import pathlib
 import configparser
 
 from PIL import Image
+
 
 def nextargument(argv: list[str], opt: str) -> str:
     
@@ -15,13 +17,13 @@ def nextargument(argv: list[str], opt: str) -> str:
 	return argv[(argv.index(opt) + 1):(argv.index(opt) + 2)]
 
 
-def updateconf(config: configparser.ConfigParser) -> None:
+def updateconf(config: configparser.ConfigParser, config_path: str) -> None:
     
 	'''
 		Update `config.ini` file with given `ConfigParser` object
  	'''
     
-	with open("./conf/config.ini", "w") as conf:
+	with open(config_path, "w") as conf:
 		config.write(conf)
   
 
@@ -54,16 +56,16 @@ def hashtext(text: str) -> str:
 
 
 def start():
-    
+	p = pathlib.PurePath(__file__)
+	config_dir = pathlib.Path(*list(p.parent.parts) + ["conf"] + ["config.ini"])
+	theme_dir = pathlib.Path(*list(p.parent.parts) + ["conf"] + ["themes"])
+
 	config = configparser.ConfigParser()
-	config.read("./conf/config.ini")
+	config.read(config_dir)
 
 	image = Image.new("RGB", (8, 8))
-	# [==================================================] git rev-parse HEAD for hash
+	# [==================================================]
 	sha256 = ""
-	# sha256 = "c02fa35ab353e05d657513b89ec14ef838cf60dc" # git
-	# sha256 = "94be53125e66d7713f5545a92857666ff456f1bd7ca65edb57d0c0a43dfffe37"
-	# sha256 = "7f83 b165   7ff1 fc53   b92d c181   48a1 d65d   fc2d 4b1f   a3d6 7728   4add d200   126d 9069".replace(" ", "")
 	
 	# [===================[Parameters]===================]
 	output_to_file_flag = False
@@ -197,7 +199,7 @@ Check out the project at: https://github.com/kernel137/shavis
 				exit(1)
 			size_select = int(size_select)
 			config.set("options", "size", str(size_select))
-			updateconf(config)
+			updateconf(config, config_dir)
 			exit(1)
 
 		if option == "theme": # filter and update theme config (--config theme name) -> exit
@@ -209,25 +211,20 @@ Check out the project at: https://github.com/kernel137/shavis
 				print(allowed_themes[len(allowed_themes)-1])
 				exit(1)
 			config.set("options", "theme", str(theme))
-			updateconf(config)
+			updateconf(config, config_dir)
 			exit(1)
 
 		if option == "color": # filter and update color config (--config color bool) -> exit
-      
-			color = sys.argv[sys.argv.index("color") + 1]
-   
+			color = sys.argv[sys.argv.index("color")+1]
 			if color.lower() in ["true", "t", "y", "yes", "yeah", "mhm", "yup"]:
 				config.set("options", "color", "True")
-    
 			elif color.lower() in ["false", "f", "n", "no", "nah", "nuhuh", "nope"]:
 				config.set("options", "color", "False")
-    
 			else:
 				print("Invalid boolean value: --config color VALUE")
 				print("Use a boolean as value for color.")
 				exit(1)
-    
-			updateconf(config)
+			updateconf(config, config_dir)
 			exit(1)
 
 		if option == "git": # filter and update git config (--config git bool) -> exit
@@ -240,7 +237,7 @@ Check out the project at: https://github.com/kernel137/shavis
 				print("Invalid boolean value: --config git VALUE")
 				print("Use a boolean as value for git.")
 				exit(1)
-			updateconf(config)
+			updateconf(config, config_dir)
 			exit(1)
 
 	if("-f" in sys.argv or "--file" in sys.argv):
@@ -455,14 +452,14 @@ Check out the project at: https://github.com/kernel137/shavis
 		else:
 			print("Hash value empty")
 			print("Input hash either by hashing a file:")
-			print("  sha256vis filename.ext")
-			print("  sha256vis -t blue -r 3 filename.ext")
+			print("  shavis filename.ext")
+			print("  shavis -t blue -r 3 filename.ext")
 			print("(Filename should always be the last argument")
 			print("and in the same directory)")
 			print("For files not in the same directory, use --file /dir/to/file.ext\"\"")
 			print("Or inputting hash manually with:")
-			print("  sha256vis --git GIT-HASH")
-			print("  sha256vis --hash HASH")
+			print("  shavis --git GIT-HASH")
+			print("  shavis --hash HASH")
 			exit(1)
 
 	# [==========[Manual inputs of hash checks]==========]
@@ -497,7 +494,7 @@ Check out the project at: https://github.com/kernel137/shavis
  
 	# [==================[Theme Loader]==================]
  
-	theme_path = f"./conf/themes/{theme}.hex" # insert theme name
+	theme = theme_dir / (theme + ".hex") # insert theme name
  
 	with open(theme_path) as file:            # open theme file
 		theme = file.readlines()         # theme is now list[16] of hex colors from theme
@@ -505,8 +502,8 @@ Check out the project at: https://github.com/kernel137/shavis
 	for i in range(16): 
 		theme[i] = theme[i].strip() # strip '\n'
 		theme[i] = tuple(int(theme[i][i2:i2+2], 16) for i2 in [0, 2, 4]) # hex list[16] -> list of 16 decimal 3 tuple
-	
- 	# [================[Rendering Image]=================]
+ 	
+  	# [================[Rendering Image]=================]
 	(x, y) = (8, 5) if git else (8, 8)
  
 	image = Image.new("RGB" if color else "L", (x, y))
