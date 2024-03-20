@@ -497,18 +497,20 @@ Check out the project at: https://github.com/kernel137/shavis
 		theme = file.readlines()         # theme is now list[16] of hex colors from theme
 	for i in range(16): theme[i] = theme[i].strip() # strip '\n'
 	for i in range(16): theme[i] = tuple(int(theme[i][i2:i2+2], 16) for i2 in [0, 2, 4]) # hex list[16] -> list of 16 decimal 3 tuple
-	# [================[Rendering Image]=================]
-	if git: x, y = 8, 5
-	else: x, y = 8, 8
+ 	
+  	# [================[Rendering Image]=================]
+	(x, y) = (8, 5) if git else (8, 8)
+ 
 	image = Image.new("RGB" if color else "L", (x, y))
-
 	pixels = image.load()
+ 
 	for v in range(x):
 		for h in range(y):
 			pixels[v,h] = theme[sha256_dvm[h][v]] if color else ((sha256_dvm[h][v]+1)*16)-1
 
 	size = 8 * (2**(size_select-1))
-	xsize, ysize = size, 5 * (2**(size_select-1)) if git else size
+	(xsize, ysize) = (size, 5 * (2**(size_select-1))) if git else size
+
 	# [=============[Resize and output Image]============]
 	if output_to_file_flag: image.resize((xsize, ysize), resample=Image.Resampling.NEAREST).save(output_filename)
 	else: image.resize((xsize, ysize), resample=Image.Resampling.NEAREST).show()
