@@ -213,15 +213,20 @@ Check out the project at: https://github.com/kernel137/shavis
 			exit()
 
 		if option == "color": # filter and update color config (--config color bool) -> exit
-			color = sys.argv[sys.argv.index("color")+1]
+      
+			color = sys.argv[sys.argv.index("color") + 1]
+   
 			if color.lower() in ["true", "t", "y", "yes", "yeah", "mhm", "yup"]:
 				config.set("options", "color", "True")
+    
 			elif color.lower() in ["false", "f", "n", "no", "nah", "nuhuh", "nope"]:
 				config.set("options", "color", "False")
+    
 			else:
 				print("Invalid boolean value: --config color VALUE")
 				print("Use a boolean as value for color.")
 				exit()
+    
 			updateconf(config)
 			exit()
 
@@ -504,8 +509,8 @@ Check out the project at: https://github.com/kernel137/shavis
 	size = 8 * (2**(size_select-1))
 	xsize, ysize = size, 5 * (2**(size_select-1)) if git else size
 	# [=============[Resize and output Image]============]
-	if output_to_file_flag: image.resize((xsize, ysize), resample=Image.NEAREST).save(str(output_filename))
-	else: image.resize((xsize, ysize), resample=Image.NEAREST).show()
+	if output_to_file_flag: image.resize((xsize, ysize), resample=Image.Resampling.NEAREST).save(output_filename)
+	else: image.resize((xsize, ysize), resample=Image.Resampling.NEAREST).show()
 	# [==================================================]
 
 if __name__ == "__main__":

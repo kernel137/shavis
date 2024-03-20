@@ -505,8 +505,8 @@ Check out the project at: https://github.com/kernel137/shavis
 	size = 8 * (2**(size_select-1))
 	xsize, ysize = size, 5 * (2**(size_select-1)) if git else size
 	# [=============[Resize and output Image]============]
-	if output_to_file_flag: image.resize((xsize, ysize), resample=Image.NEAREST).save(str(output_filename))
-	else: image.resize((xsize, ysize), resample=Image.NEAREST).show()
+	if output_to_file_flag: image.resize((xsize, ysize), resample=Image.Resampling.NEAREST).save(output_filename)
+	else: image.resize((xsize, ysize), resample=Image.Resampling.NEAREST).show()
 	# [==================================================]
 
 if __name__ == "__main__":
