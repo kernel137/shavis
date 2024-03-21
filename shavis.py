@@ -119,6 +119,8 @@ With no flags, print this help page and exit.
   [-m] [--mono]
   -h, --help        Display this help and exit
   [-h] [--help]
+  -v, --version     Display version and exit
+  [-v] [--version]
 
 If output filename is "def", the file name will be the first 7 hex digits
 of the hash in a .png format.
@@ -428,6 +430,10 @@ Check out the project at: https://github.com/kernel137/shavis
 
 	if("-m" in sys.argv or "--mono" in sys.argv):
 		color = False
+	
+	if("-v" in sys.argv or "--version" in sys.argv):
+		print("shavis 0.1.4")
+		exit() # expected exit
 	# [=================[Check for pipe]=================]
 	if not os.isatty(0):
 		if git: 
@@ -513,8 +519,11 @@ Check out the project at: https://github.com/kernel137/shavis
 			pixels[v,h] = theme[sha256_dvm[h][v]] if color else ((sha256_dvm[h][v]+1)*16)-1
 
 	size = 8 * (2**(size_select-1))
-	size = (size, size)
-	(xsize, ysize) = (size, 5 * (2**(size_select-1))) if git else size
+
+	if git:
+		xsize, ysize = size, 5 * (2**(size_select-1))
+	else:
+		xsize, ysize = size, size
 
 	# [=============[Resize and output Image]============]
 	if output_to_file_flag: image.resize((xsize, ysize), resample=Image.Resampling.NEAREST).save(output_filename)
