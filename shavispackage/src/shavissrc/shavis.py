@@ -116,7 +116,7 @@ With no flags, print this help page and exit.
   [-o def] [--output def] or [-o "output.png"] [--output "output.png"] 
   -g, --git         Use a git commit hash to generate 8x5 image
   [-g HASH] [--git HASH] (HASH has to be SHA-1)
-  -l  --git-latest	Use latest git commit hash from current directory to generate 8x5 image
+  -l  --git-latest  Use latest git commit hash from current directory to generate 8x5 image
   [-l] [--git-latest]
   -m, --mono        Black and white output. No arguments.
   [-m] [--mono]
