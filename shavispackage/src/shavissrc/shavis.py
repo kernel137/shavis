@@ -5,6 +5,7 @@ import hashlib
 import pathlib
 import configparser
 
+from git import Repo
 from PIL import Image
 
 
@@ -391,6 +392,11 @@ Check out the project at: https://github.com/kernel137/shavis
 		if os.isatty(0):
 			sha256 = sys.argv[sys.argv.index("-g")+1] if "-g" in sys.argv else sys.argv[sys.argv.index("--git")+1]
 		# output filename inserted
+			
+	if("-l" in sys.argv or "--git-latest" in sys.argv):
+		git = True
+		repository = Repo(os.path.abspath(os.getcwd()))
+		sha256 = repository.head.commit.hexsha
 
 	if("-o" in sys.argv or "--output" in sys.argv):
 		if "-o" in sys.argv: # filter for missing filename (-o filename.ext) -> exit
