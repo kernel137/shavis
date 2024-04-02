@@ -259,16 +259,13 @@ Check out the project at: https://github.com/kernel137/shavis
 
 		filename = sys.argv[sys.argv.index("-f")+1] if "-f" in sys.argv else sys.argv[sys.argv.index("--file")+1]
 		# taking file name
-
-		try: # opening file 
-			file = open(str(filename))
-		except FileNotFoundError: # filter filename.ext existing -> exit
+  
+		if not os.path.exists(filename):
 			print(f"Invalid file name: --file {filename}")
 			print("File does not exist.")
 			exit(1) # error exit
-		else:
-			sha256 = hashfile(str(filename))
-		# sha256 updated 
+
+		sha256 = hashfile(str(filename))
 
 	if("-t" in sys.argv or "--theme" in sys.argv):
 		if "-t" in sys.argv: # filter for missing option (-t option) -> exit
