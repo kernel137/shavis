@@ -56,6 +56,28 @@ def hashtext(text: str) -> str:
 	return hashlib.sha256(bytes(str(text), "UTF-8")).hexdigest()
 
 
+def hash_check(hash: str, is_git_hash: bool) -> None:
+
+	'''
+		Check if a given hash is valid
+	'''
+
+	if is_git_hash and (len(hash) != 40):
+		print("Error: Git hash must be 40 characters long (SHA1).")
+		exit(1)
+
+	if not is_git_hash and (len(hash) != 64):
+		print("Error: Input hash must be 64 characters long (SHA256).")
+		exit(1)
+
+	for (idx, character) in enumerate(hash):
+		if character not in string.hexdigits:
+			print("Error: Invalid checksum in hash string")
+			print(hash)
+			print((" " * idx) + "↑")
+			exit(1)
+
+
 def start():
 	p = pathlib.PurePath(__file__)
 	config_dir = pathlib.Path(*list(p.parent.parts) + ["conf"] + ["config.ini"])
@@ -260,15 +282,12 @@ Check out the project at: https://github.com/kernel137/shavis
 		filename = sys.argv[sys.argv.index("-f")+1] if "-f" in sys.argv else sys.argv[sys.argv.index("--file")+1]
 		# taking file name
 
-		try: # opening file 
-			file = open(str(filename))
-		except FileNotFoundError: # filter filename.ext existing -> exit
+		if not os.path.exists(filename):
 			print(f"Invalid file name: --file {filename}")
 			print("File does not exist.")
 			exit(1) # error exit
-		else:
-			sha256 = hashfile(str(filename))
-		# sha256 updated 
+
+		sha256 = hashfile(str(filename))
 
 	if("-t" in sys.argv or "--theme" in sys.argv):
 		if "-t" in sys.argv: # filter for missing option (-t option) -> exit
@@ -475,30 +494,8 @@ Check out the project at: https://github.com/kernel137/shavis
 			print("  shavis --hash HASH")
 			exit(1) # error exit
 
-	# [==========[Manual inputs of hash checks]==========]
-	# Check length
-	if git and len(sha256) != 40: # filter for missing hash (-g GIT-HASH) -> exit
-		print("Error: Git hash must be 40 characters long (SHA-1).")
-		print(f"[{sha256}]")
-		exit(1) # error exit
-	if not git and len(sha256) != 64: # filter for missing hash -> exit
-		print("Error: Input must be 64 characters long.")
-		exit(1) # error exit
-
-	# Check for invalid characters (And point them out!!!)
-	valid_characters = [i in string.hexdigits for i in sha256]
- 
-	if not all(valid_characters): 
-
-		print("Error: Invalid SHA256 hashsum character in string.")
-		print(sha256)
-  
-		for char in valid_characters:
-			if not char: print("↑", end='')
-			else: print(" ", end='')
-   
-		print()
-		exit(1) # error exit
+	# [==========[Input Hash Validation]==========]
+	hash_check(sha256, git)
 
 	# [==================[ Processing ]==================]
 	sha256_dv = [int(i, 16) for i in sha256] # dv  = Decimal Values         |   hex -> decimal -> list
