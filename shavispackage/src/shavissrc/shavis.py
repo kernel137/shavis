@@ -8,6 +8,68 @@ import configparser
 from git import Repo
 from PIL import Image
 
+def printHelpPage(theme: str, size_select: int, color: bool, git: bool):
+	helpPage = f"""Usage: shavis [OPTIONS]...[FILE]
+Visualize SHA256 or SHA1 hash sum, either directly or of a file. 
+With no flags, print this help page and exit.
+--config
+		Change configuration for resolution and theme with persistence
+		[--config theme NAME] [--config size N]
+-f, --file         Hash file and visualize hash
+[-f filename.ext] [--file filename.ext]
+-s, --hash         Input hash directly as argument
+[-s HASH] [--hash HASH] (HASH has to be SHA256)
+-r, --resolution
+		Pick resolution size, options:
+	[N]  SHA256      SHA1 (Git)
+		1 - 8x8       - 8x5
+		2 - 16x16     - 16x10
+		3 - 32x32     - 32x20
+		4 - 64x64     - 64x40
+		5 - 128x128   - 128x80
+		6 - 256x256   - 256x160
+		7 - 512x512   - 512x320
+		8 - 1024x1024 - 1024x640
+		9 - 2048x2048 - 2048x1280
+	10 - 4096x4096 - 4096x2560
+	[-r N] [--resolution N]
+-t, --theme       Change theme, currently available themes:
+		blue, red, gold, natur, dim, dark, cyan, soft-fall.
+[-t red] [--theme gold]
+-o, --output      Output to file and (optionally) choose file name
+[-o def] [--output def] or [-o "output.png"] [--output "output.png"] 
+-g, --git         Use a git commit hash to generate 8x5 image
+[-g HASH] [--git HASH] (HASH has to be SHA-1)
+-gl  --git-latest  Use latest git commit hash from current directory to generate 8x5 image
+[-gl] [--git-latest]
+-m, --mono        Black and white output. No arguments.
+[-m] [--mono]
+-h, --help        Display this help and exit
+[-h] [--help]
+-v, --version     Display version and exit
+[-v] [--version]
+ 
+If output filename is "def", the file name will be the first 7 hex digits
+of the hash in a .png format.
+Current config:
+theme: {theme}
+size:  {size_select}
+color: {color}
+git:   {git}
+ 
+Examples:
+shavis filename.ext                
+shavis -t cyan -r 4 -o def -s HASH
+shavis -m -o commit.png -g GIT-HASH  
+ 
+Piping accessibility examples: 
+cat file.ext | shavis
+git rev-parse HEAD | shavis -g
+ 
+Check out the project at: https://github.com/kernel137/shavis
+"""
+	print(helpPage)
+	
 
 def nextargument(argv: list[str], opt: str) -> list:
     
@@ -55,29 +117,6 @@ def hashtext(text: str) -> str:
 
 	return hashlib.sha256(bytes(str(text), "UTF-8")).hexdigest()
 
-
-def hash_check(hash: str, is_git_hash: bool) -> None:
-
-	'''
-		Check if a given hash is valid
-	'''
-
-	if is_git_hash and (len(hash) != 40):
-		print("Error: Git hash must be 40 characters long (SHA1).")
-		exit(1)
-
-	if not is_git_hash and (len(hash) != 64):
-		print("Error: Input hash must be 64 characters long (SHA256).")
-		exit(1)
-
-	for (idx, character) in enumerate(hash):
-		if character not in string.hexdigits:
-			print("Error: Invalid checksum in hash string")
-			print(hash)
-			print((" " * idx) + "↑")
-			exit(1)
-
-
 def start():
 	p = pathlib.PurePath(__file__)
 	config_dir = pathlib.Path(*list(p.parent.parts) + ["conf"] + ["config.ini"])
@@ -87,9 +126,7 @@ def start():
 	config.read(config_dir)
 
 	image = Image.new("RGB", (8, 8))
-	# [==================================================]
 	sha256 = ""
-	
 	# [===================[Parameters]===================]
 	output_to_file_flag = False
 	output_filename = "output.txt"
@@ -107,66 +144,7 @@ def start():
 	# [======================[Help]======================]
 
 	if(os.isatty(0) and (len(sys.argv) == 1 or sys.argv[1] == "-h" or sys.argv[1] == "--help")):
-		helpPage = f"""Usage: shavis [OPTIONS]...[FILE]
-Visualize SHA256 or SHA1 hash sum, either directly or of a file. 
-With no flags, print this help page and exit.
-  --config
-        Change configuration for resolution and theme with persistence
-		[--config theme NAME] [--config size N]
-  -f, --file         Hash file and visualize hash
-  [-f filename.ext] [--file filename.ext]
-  -s, --hash         Input hash directly as argument
-  [-s HASH] [--hash HASH] (HASH has to be SHA256)
-  -r, --resolution
-        Pick resolution size, options:
-       [N]  SHA256      SHA1 (Git)
-        1 - 8x8       - 8x5
-        2 - 16x16     - 16x10
-        3 - 32x32     - 32x20
-        4 - 64x64     - 64x40
-        5 - 128x128   - 128x80
-        6 - 256x256   - 256x160
-        7 - 512x512   - 512x320
-        8 - 1024x1024 - 1024x640
-        9 - 2048x2048 - 2048x1280
-       10 - 4096x4096 - 4096x2560
-    [-r N] [--resolution N]
-  -t, --theme       Change theme, currently available themes:
-        blue, red, gold, natur, dim, dark, cyan, soft-fall.
-  [-t red] [--theme gold]
-  -o, --output      Output to file and (optionally) choose file name
-  [-o def] [--output def] or [-o "output.png"] [--output "output.png"] 
-  -g, --git         Use a git commit hash to generate 8x5 image
-  [-g HASH] [--git HASH] (HASH has to be SHA-1)
-  -l  --git-latest  Use latest git commit hash from current directory to generate 8x5 image
-  [-l] [--git-latest]
-  -m, --mono        Black and white output. No arguments.
-  [-m] [--mono]
-  -h, --help        Display this help and exit
-  [-h] [--help]
-  -v, --version     Display version and exit
-  [-v] [--version]
-
-If output filename is "def", the file name will be the first 7 hex digits
-of the hash in a .png format.
-Current config:
-  theme: {theme}
-  size:  {size_select}
-  color: {color}
-  git:   {git}
-
-Examples:
-  shavis filename.ext                
-  shavis -t cyan -r 4 -o def -s HASH
-  shavis -m -o commit.png -g GIT-HASH  
-
-Piping accessibility examples: 
-  cat file.ext | shavis
-  git rev-parse HEAD | shavis -g
-
-Check out the project at: https://github.com/kernel137/shavis
-	"""
-		print(helpPage)
+		printHelpPage(theme, size_select, color, git)
 		exit() # expected exit
 	# [===============[Options Processing]===============]
 
@@ -281,7 +259,7 @@ Check out the project at: https://github.com/kernel137/shavis
 
 		filename = sys.argv[sys.argv.index("-f")+1] if "-f" in sys.argv else sys.argv[sys.argv.index("--file")+1]
 		# taking file name
-
+  
 		if not os.path.exists(filename):
 			print(f"Invalid file name: --file {filename}")
 			print("File does not exist.")
@@ -413,8 +391,8 @@ Check out the project at: https://github.com/kernel137/shavis
 		if os.isatty(0):
 			sha256 = sys.argv[sys.argv.index("-g")+1] if "-g" in sys.argv else sys.argv[sys.argv.index("--git")+1]
 		# output filename inserted
-			
-	if("-l" in sys.argv or "--git-latest" in sys.argv):
+	
+	if("-gl" in sys.argv or "--git-latest" in sys.argv):
 		git = True
 		repository = Repo(os.path.abspath(os.getcwd()))
 		sha256 = repository.head.commit.hexsha
@@ -494,8 +472,30 @@ Check out the project at: https://github.com/kernel137/shavis
 			print("  shavis --hash HASH")
 			exit(1) # error exit
 
-	# [==========[Input Hash Validation]==========]
-	hash_check(sha256, git)
+	# [==========[Validate manual hash inputs]==========]
+	# Check length
+	if git and len(sha256) != 40: # filter for missing hash (-g GIT-HASH) -> exit
+		print("Error: Git hash must be 40 characters long (SHA-1).")
+		print(f"[{sha256}]")
+		exit(1) # error exit
+	if not git and len(sha256) != 64: # filter for missing hash -> exit
+		print("Error: Input must be 64 characters long.")
+		exit(1) # error exit
+
+	# Check for invalid characters (And point them out!!!)
+	valid_characters = [i in string.hexdigits for i in sha256]
+ 
+	if not all(valid_characters): 
+
+		print("Error: Invalid SHA256 hashsum character in string.")
+		print(sha256)
+  
+		for char in valid_characters:
+			if not char: print("↑", end='')
+			else: print(" ", end='')
+   
+		print()
+		exit(1) # error exit
 
 	# [==================[ Processing ]==================]
 	sha256_dv = [int(i, 16) for i in sha256] # dv  = Decimal Values         |   hex -> decimal -> list
