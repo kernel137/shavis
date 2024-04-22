@@ -138,8 +138,8 @@ With no flags, print this help page and exit.
   [-o def] [--output def] or [-o "output.png"] [--output "output.png"] 
   -g, --git         Use a git commit hash to generate 8x5 image
   [-g HASH] [--git HASH] (HASH has to be SHA-1)
-  -l  --git-latest  Use latest git commit hash from current directory to generate 8x5 image
-  [-l] [--git-latest]
+  -gl  --git-latest  Use latest git commit hash from current directory to generate 8x5 image
+  [-gl] [--git-latest]
   -m, --mono        Black and white output. No arguments.
   [-m] [--mono]
   -h, --help        Display this help and exit
@@ -414,7 +414,7 @@ Check out the project at: https://github.com/kernel137/shavis
 			sha256 = sys.argv[sys.argv.index("-g")+1] if "-g" in sys.argv else sys.argv[sys.argv.index("--git")+1]
 		# output filename inserted
 	
-	if("-l" in sys.argv or "--git-latest" in sys.argv):
+	if("-gl" in sys.argv or "--git-latest" in sys.argv):
 		git = True
 		repository = Repo(os.path.abspath(os.getcwd()))
 		sha256 = repository.head.commit.hexsha
